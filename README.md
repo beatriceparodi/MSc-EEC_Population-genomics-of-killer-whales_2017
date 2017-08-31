@@ -403,7 +403,6 @@ And plot the results in R. For instance
 ##`Rscript DSTAT angsdFile=bamTestTrans.Filter.Angsd nameFile=testTrans.name out=testTrans.R`
 
 ##6. run Dstat counts of ABBA,BABA alleles combinations on (((B1 C) Transient) Resident) tree
-
 ##`nohup ./ANGSD -doAbbababa2 1 -doCounts 1 -sizeFile testTrans2.size -bam bamTestTrans2.filelist -out bamTestTrans2.Filter.Angsd -useLast 1 -blockSize 10000 -p 3 -minQ 20 -minmapQ 20 -r KB316843.1: > testTransFilter2.print &`
 '
 ##`Rscript DSTAT angsdFile=bamTestTrans2.Filter.Angsd nameFile=testTrans2.name out=testTrans2.R`
@@ -413,7 +412,6 @@ And plot the results in R. For instance
 `cat typeB1.bamlist typeB2.bamlist typeC.bamlist > bamAncient.filelist`
 
 `ANC=~/Desktop/killerwhales/data/ancestral.fa` 
-
 `nohup ./ANGSD -doAbbababa2 1 -doCounts 1 -sizeFile ~/Desktop/Dstat/ancestral.size  -bam bamAncient.filelist -anc $ANC -out ancestral.Angsd -useLast 0 -blockSize 10000 -p 3 -minQ 20 -minmapQ 20 -r KB316843.1: > ancestral.print &`
 8. Look at the output with `watch tail ancestral.print`
 
@@ -449,7 +447,7 @@ p
 
 `ggsave("track_bath.jpeg", plot=last_plot())`
 
-3. create trip
+3. create transect of trip with ggplot
 
 `datall <- read.table("mapa4.csv", header=T,sep=";" , dec=",")`
 `unique(datall$TRIP)`
@@ -462,7 +460,7 @@ p
   p <-  p +  geom_contour(data=batd, aes(batd$x, batd$y, z=batd$z, colour = ..level..))  +  
         labs(colour = "Level", title = paste(i)) +
         xlab("Longitude") + ylab("Latitude") 
-  p <- p + geom_point(data=d, aes(trip$Longitude, trip$Latitude), size=0.1, col="red")V  
+  p <- p + geom_point(data=d, aes(trip$Longitude, trip$Latitude), size=0.1, col="red")  
   
   
   `ggsave(paste(i,".jpeg"), plot=last_plot())
