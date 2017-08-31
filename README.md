@@ -1,5 +1,6 @@
-## Beatrice Parodi, 7.06.2017
-#### Population genetics of killer whales
+# MSc-EEC_Population-genomics-of-killer-whales_2017
+_Pipeline for MSc project (EEC), Betrice Parodi, Aug, 2017_
+
 
 Before starting the analysis, create a folder with data and results and make sure that all files are in the rigth format
 
@@ -340,7 +341,7 @@ And plot the results in R. For instance
 
 #zcat testLD_T.geno.gz | awk 'BEGIN{cnt=1} pos > 10000 {pos=0; cnt++} {pos+=int(rand()*1000+1); print $1"_"cnt"\t"pos}' > testLD.pos
 
-2. ANGSD with -doGeno 32 
+°2. ANGSD with -doGeno 32 
 
  `for POP in B1 B2 C resident transient`
 
@@ -348,6 +349,7 @@ And plot the results in R. For instance
     `echo $POP`
 
     `$ANGSD/angsd -b ALL.bamlist -ref $REF -out results/LD$POP -only_proper_pairs 1 -trim 0 -C 50 -baq 1 -minMapQ 20 -minQ 20 -minInd 1 -setMinDepth 20 -setMaxDepth 200 -doCounts 1 -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 -SNP_pval 1e-4 -doGeno 32 -doPost 1`
+
 
 `done`
 
@@ -413,12 +415,56 @@ And plot the results in R. For instance
 `ANC=~/Desktop/killerwhales/data/ancestral.fa` 
 
 `nohup ./ANGSD -doAbbababa2 1 -doCounts 1 -sizeFile ~/Desktop/Dstat/ancestral.size  -bam bamAncient.filelist -anc $ANC -out ancestral.Angsd -useLast 0 -blockSize 10000 -p 3 -minQ 20 -minmapQ 20 -r KB316843.1: > ancestral.print &`
-
 8. Look at the output with `watch tail ancestral.print`
 
 9. Calculate the Dstat in R
 
 `Rscript DSTAT angsdFile=ancestral.Angsd nameFile=ancestral.name out=ancestral.R`
 
-# MSc-EEC_Population-genomics-of-killer-whales_2017
-Pipeline for MSc project (EEC), 2017
+## creating trip maps in R
+library(ggmap)
+library(ggplot2)
+library(marmap)
+
+
+datall <- read.table("mapa3.csv", header=T,sep=";" , dec=",") 
+d <- data.frame(datall$lat, datall$lon)
+
+
+1.  Fetch data on NOAA servers and write on disk and create a bathymetry map
+bat <- getNOAA.bathy(-7, -4, 35.5, 36.5, res = 1.0, keep=TRUE)
+batd <- fortify(bat)
+bath_threshold = -50
+batd$z[batd$z > bath_threshold] = bath_threshold # Crop all altitudes higher than bath_threshold to avoid showing mountains, etc.
+
+2. download maps from google adding GPS coordinates form the files
+
+Estrecho <- get_map("Gibraltar channel, Spain")
+p <- ggmap(Estrecho)   
+p <- p +  geom_contour(data=batd, aes(batd$x, batd$y, z=batd$z, colour = ..level..))  + #batimetria
+          labs(colour = "Level", title = "TRACKS SUMMER 2017") +
+          xlab("Longitude") + ylab("Latitude") 
+p <- p + geom_point(data=d, aes(datall$lon, datall$lat), size=0.1, col="pink") #transect
+p 
+
+#ggsave("track_bath.jpeg", plot=last_plot())
+
+3. create trip
+
+datall <- read.table("mapa4.csv", header=T,sep=";" , dec=",") 
+unique(datall$TRIP)
+t <- c(unique(datall$TRIP))
+
+for (i in t) {
+  trip <- subset(datall, TRIP == i)
+  d <-  data.frame(trip$Latitude, trip$Longitude)
+  p <-  ggmap(Estrecho)
+  p <-  p +  geom_contour(data=batd, aes(batd$x, batd$y, z=batd$z, colour = ..level..))  +  # batimetria
+        labs(colour = "Level", title = paste(i)) +
+        xlab("Longitude") + ylab("Latitude") 
+  p <- p + geom_point(data=d, aes(trip$Longitude, trip$Latitude), size=0.1, col="pink")  #transect
+  p 
+  
+  ggsave(paste(i,".jpeg"), plot=last_plot())
+  
+}
